@@ -1,0 +1,165 @@
+<div class="auth-wrapper">
+  <mat-card class="auth-card">
+    @if (mode() !== 'forgotPassword' && mode() !== 'resetPassword') {
+      <div class="mode-switch">
+        <button
+          mat-flat-button
+          type="button"
+          [class.active]="mode() === 'login'"
+          (click)="switchMode('login')"
+        >
+          {{ 'auth.login' | transloco }}
+        </button>
+        <button
+          mat-flat-button
+          type="button"
+          [class.active]="mode() === 'register'"
+          (click)="switchMode('register')"
+        >
+          {{ 'auth.register' | transloco }}
+        </button>
+      </div>
+    }
+
+    @if (mode() === 'login') {
+      <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="handleLogin()">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.email' | transloco }}</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (loginForm.controls.email.hasError('required')) {
+            <mat-error>{{ 'auth.errors.emailRequired' | transloco }}</mat-error>
+          } @else if (loginForm.controls.email.hasError('email')) {
+            <mat-error>{{ 'auth.errors.emailRequired' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.password' | transloco }}</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="current-password" />
+          @if (loginForm.controls.password.invalid) {
+            <mat-error>{{ 'auth.errors.required' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (error()) {
+          <p class="error-text">{{ error() }}</p>
+        }
+
+        <button mat-flat-button class="submit" type="submit" [disabled]="sending()">
+          {{ 'auth.loginBtn' | transloco }}
+        </button>
+
+        <button mat-button class="link" type="button" (click)="switchMode('forgotPassword')">
+          {{ 'auth.forgotPassword' | transloco }}
+        </button>
+      </form>
+    }
+
+    @if (mode() === 'register') {
+      <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="handleRegister()">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.name' | transloco }}</mat-label>
+          <input matInput type="text" formControlName="name" autocomplete="name" />
+          @if (registerForm.controls.name.invalid) {
+            <mat-error>{{ 'auth.errors.required' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.email' | transloco }}</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (registerForm.controls.email.invalid) {
+            <mat-error>{{ 'auth.errors.emailRequired' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.password' | transloco }}</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="new-password" />
+          @if (registerForm.controls.password.hasError('minlength')) {
+            <mat-error>{{ 'auth.errors.passwordLength' | transloco }}</mat-error>
+          } @else if (registerForm.controls.password.invalid) {
+            <mat-error>{{ 'auth.errors.required' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (error()) {
+          <p class="error-text">{{ error() }}</p>
+        }
+
+        <button mat-flat-button class="submit" type="submit" [disabled]="sending()">
+          {{ 'auth.registerBtn' | transloco }}
+        </button>
+      </form>
+    }
+
+    @if (mode() === 'forgotPassword') {
+      <form class="auth-form" [formGroup]="forgotForm" (ngSubmit)="handleForgotPassword()">
+        <h2 class="form-title">{{ 'auth.forgotPassword' | transloco }}</h2>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.email' | transloco }}</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (forgotForm.controls.email.invalid) {
+            <mat-error>{{ 'auth.errors.emailRequired' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (error()) {
+          <p class="error-text">{{ error() }}</p>
+        }
+        @if (message()) {
+          <p class="success-text">{{ message() }}</p>
+        }
+
+        <button mat-flat-button class="submit" type="submit" [disabled]="sending()">
+          {{ 'auth.sendReset' | transloco }}
+        </button>
+
+        <button mat-button class="link" type="button" (click)="switchMode('login')">
+          {{ 'auth.hasAccount' | transloco }}
+        </button>
+      </form>
+    }
+
+    @if (mode() === 'resetPassword') {
+      <form class="auth-form" [formGroup]="resetForm" (ngSubmit)="handleResetPassword()">
+        <h2 class="form-title">{{ 'auth.resetPassword' | transloco }}</h2>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.newPassword' | transloco }}</mat-label>
+          <input matInput type="password" formControlName="newPassword" autocomplete="new-password" />
+          @if (resetForm.controls.newPassword.hasError('minlength')) {
+            <mat-error>{{ 'auth.errors.passwordLength' | transloco }}</mat-error>
+          } @else if (resetForm.controls.newPassword.invalid) {
+            <mat-error>{{ 'auth.errors.required' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.confirmPassword' | transloco }}</mat-label>
+          <input
+            matInput
+            type="password"
+            formControlName="confirmPassword"
+            autocomplete="new-password"
+          />
+          @if (resetForm.controls.confirmPassword.invalid) {
+            <mat-error>{{ 'auth.errors.required' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (error()) {
+          <p class="error-text">{{ error() }}</p>
+        }
+        @if (message()) {
+          <p class="success-text">{{ message() }}</p>
+        }
+
+        <button mat-flat-button class="submit" type="submit" [disabled]="sending()">
+          {{ 'auth.resetBtn' | transloco }}
+        </button>
+      </form>
+    }
+  </mat-card>
+</div>

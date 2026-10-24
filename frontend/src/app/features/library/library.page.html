@@ -1,0 +1,391 @@
+<div class="library">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-title-row">
+        <h1>{{ 'library.title' | transloco }}</h1>
+        @if (auth.isAdmin()) {
+          <button
+            mat-icon-button
+            type="button"
+            class="add-button"
+            [attr.title]="'library.addMaterial' | transloco"
+            (click)="openCreate()"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+            </svg>
+          </button>
+        }
+      </div>
+
+      <div class="search-row">
+        <input
+          class="search-input"
+          type="text"
+          [placeholder]="'library.search' | transloco"
+          [value]="search()"
+          (input)="onSearchInput($event)"
+        />
+        <button
+          type="button"
+          class="star-filter"
+          [class.active]="showFavorites()"
+          [attr.title]="'library.favorites' | transloco"
+          (click)="toggleFavorites()"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        </button>
+      </div>
+
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>{{ 'library.sortLabel' | transloco }}</mat-label>
+        <mat-select [value]="sortKey()" (selectionChange)="onSortChange($event)">
+          <mat-option value="createdAt_desc">{{ 'library.sortNew' | transloco }}</mat-option>
+          <mat-option value="createdAt_asc">{{ 'library.sortOld' | transloco }}</mat-option>
+          <mat-option value="title_asc">{{ 'library.sortAz' | transloco }}</mat-option>
+          <mat-option value="title_desc">{{ 'library.sortZa' | transloco }}</mat-option>
+          <mat-option value="type_asc">{{ 'library.sortType' | transloco }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      @if (allTags().length) {
+        <div class="tag-filter">
+          @for (tag of allTags(); track tag.id) {
+            <button
+              type="button"
+              class="tag-chip"
+              [class.active]="selectedTagIds().includes(tag.id)"
+              (click)="toggleTagFilter(tag.id)"
+            >
+              {{ tag.name }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="item-list">
+      @if (content.loading()) {
+        <p class="list-message">{{ 'library.loading' | transloco }}</p>
+      }
+
+      @for (item of filteredItems(); track item.id) {
+        <div
+          class="item-row"
+          role="button"
+          tabindex="0"
+          [class.active]="content.current()?.id === item.id"
+          (click)="selectItem(item)"
+          (keydown.enter)="selectItem(item)"
+        >
+          <span class="item-icon">{{ typeIcon(item.type) }}</span>
+          <div class="item-body">
+            <div class="item-title-row">
+              <span class="item-title">{{ item.title }}</span>
+              @if (auth.isAuthenticated()) {
+                <button
+                  type="button"
+                  class="star-button"
+                  [class.active]="item.isFavorited"
+                  (click)="$event.stopPropagation(); handleToggleFavorite(item)"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                </button>
+              }
+            </div>
+            <div class="item-meta">{{ item.author?.name }} · {{ formatDate(item.createdAt) }}</div>
+            @if (item.tags?.length) {
+              <div class="item-tags">
+                @for (tag of item.tags; track tag.id) {
+                  <span class="tag-badge">{{ tag.name }}</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (!content.loading() && filteredItems().length === 0) {
+        <p class="list-message">
+          {{ (search().trim() ? 'library.notFound' : 'library.noItems') | transloco }}
+        </p>
+      }
+
+      @if (content.hasMore() && !search().trim()) {
+        <button mat-button type="button" class="load-more" [disabled]="content.loadingMore()" (click)="loadMore()">
+          {{
+            (content.loadingMore() ? 'library.loading' : 'library.loadMore')
+              | transloco: { count: remainingCount() }
+          }}
+        </button>
+      }
+    </div>
+  </aside>
+
+  <main class="detail">
+    @if (isEditing()) {
+      <div class="detail-inner">
+        <h2 class="detail-heading">
+          {{ (editingId() ? 'library.editTitle' : 'library.createTitle') | transloco }}
+        </h2>
+
+        <form [formGroup]="form" (ngSubmit)="handleSave()" class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'library.titleLabel' | transloco }}</mat-label>
+            <input matInput type="text" formControlName="title" />
+            @if (form.controls.title.invalid) {
+              <mat-error>{{ 'auth.errors.required' | transloco }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'library.typeLabel' | transloco }}</mat-label>
+            <mat-select formControlName="type">
+              <mat-option value="text">{{ 'library.typeText' | transloco }}</mat-option>
+              <mat-option value="video">{{ 'library.typeVideo' | transloco }}</mat-option>
+              <mat-option value="link">{{ 'library.typeLink' | transloco }}</mat-option>
+              <mat-option value="file">{{ 'library.typeFile' | transloco }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          @if (form.controls.type.value === 'video' || form.controls.type.value === 'link') {
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'library.urlLabel' | transloco }}</mat-label>
+              <input
+                matInput
+                type="url"
+                formControlName="mediaUrl"
+                [placeholder]="'library.urlPlaceholder' | transloco"
+              />
+            </mat-form-field>
+          }
+
+          @if (form.controls.type.value === 'file') {
+            <div class="file-block">
+              <label class="field-label">{{ 'library.typeFile' | transloco }}</label>
+              <input type="file" (change)="onFileSelected($event)" />
+              @if (selectedFile()) {
+                <p class="muted small">
+                  {{ selectedFile()?.name }} ({{ formatFileSize(selectedFile()?.size ?? null) }})
+                </p>
+              } @else if (editingId() && content.current()?.mediaUrl) {
+                <p class="muted small">
+                  {{ content.current()?.fileName || ('library.downloadFile' | transloco) }}
+                </p>
+              }
+            </div>
+          }
+
+          @if (editingId() && content.current()?.files?.length) {
+            <div class="file-block">
+              <label class="field-label">{{ 'library.recordFiles' | transloco }}</label>
+              @for (file of content.current()?.files ?? []; track file.id) {
+                <div class="file-row">
+                  <span class="file-name">{{ file.fileName }}</span>
+                  <button mat-button type="button" class="remove-file" (click)="handleDeleteFile(file.id)">
+                    {{ 'common.delete' | transloco }}
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          @if (!editingId() && pendingCreateFiles().length) {
+            <div class="file-block">
+              <label class="field-label">{{ 'library.filesToUpload' | transloco }}</label>
+              @for (file of pendingCreateFiles(); track $index) {
+                <div class="file-row">
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="muted small">{{ formatFileSize(file.size) }}</span>
+                  <button mat-button type="button" class="remove-file" (click)="removePending('create', $index)">
+                    {{ 'library.remove' | transloco }}
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          @if (editingId() && pendingEditFiles().length) {
+            <div class="file-block">
+              <label class="field-label">{{ 'library.newFilesPending' | transloco }}</label>
+              @for (file of pendingEditFiles(); track $index) {
+                <div class="file-row">
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="muted small">{{ formatFileSize(file.size) }}</span>
+                  <button mat-button type="button" class="remove-file" (click)="removePending('edit', $index)">
+                    {{ 'library.remove' | transloco }}
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="file-block">
+            <label class="field-label">{{ 'library.addFiles' | transloco }}</label>
+            <input
+              type="file"
+              multiple
+              (change)="editingId() ? onPendingEditSelected($event) : onPendingCreateSelected($event)"
+            />
+          </div>
+
+          <div class="tags-block">
+            <label class="field-label">{{ 'library.tagsLabel' | transloco }}</label>
+            <div class="tag-editor">
+              @for (tag of allTags(); track tag.id) {
+                <button
+                  type="button"
+                  class="tag-chip"
+                  [class.active]="formTagIds().includes(tag.id)"
+                  (click)="toggleFormTag(tag.id)"
+                >
+                  {{ tag.name }}
+                </button>
+              }
+              @if (!allTags().length) {
+                <span class="muted small">{{ 'library.noTags' | transloco }}</span>
+              }
+
+              @if (auth.isAdmin()) {
+                <input
+                  class="new-tag-input"
+                  type="text"
+                  [placeholder]="'library.newTagPlaceholder' | transloco"
+                  [value]="newTagName()"
+                  (input)="onNewTagInput($event)"
+                  (keydown.enter)="createAndAddTag(); $event.preventDefault()"
+                />
+                @if (newTagName().trim()) {
+                  <button mat-icon-button type="button" class="create-tag" (click)="createAndAddTag()">+</button>
+                }
+              }
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'library.bodyLabel' | transloco }}</mat-label>
+            <textarea
+              matInput
+              rows="12"
+              formControlName="body"
+              [placeholder]="'library.bodyPlaceholder' | transloco"
+            ></textarea>
+          </mat-form-field>
+
+          @if (saveError()) {
+            <p class="error-text">{{ saveError() }}</p>
+          }
+
+          <div class="form-actions">
+            <button mat-flat-button type="submit" [disabled]="saving()">
+              {{ (saving() ? 'library.saving' : 'library.save') | transloco }}
+            </button>
+            <button mat-stroked-button type="button" (click)="cancelEdit()">
+              {{ 'common.cancel' | transloco }}
+            </button>
+          </div>
+        </form>
+      </div>
+    } @else if (content.current(); as item) {
+      <div class="detail-inner">
+        <header class="detail-header">
+          <div>
+            <div class="detail-title-row">
+              <span class="detail-icon">{{ typeIcon(item.type) }}</span>
+              <h1>{{ item.title }}</h1>
+            </div>
+            <div class="muted">
+              {{ item.author?.name }} · {{ formatDate(item.createdAt) }}
+            </div>
+          </div>
+
+          @if (auth.isAdmin()) {
+            <div class="detail-actions">
+              <button mat-stroked-button type="button" (click)="openEdit()">
+                {{ 'common.edit' | transloco }}
+              </button>
+              <button mat-stroked-button type="button" class="delete-button" (click)="handleDelete()">
+                {{ 'common.delete' | transloco }}
+              </button>
+            </div>
+          }
+        </header>
+
+        @if (item.type === 'video' && item.mediaUrl) {
+          <div class="video-embed">
+            <iframe [src]="embedUrl()" allowfullscreen title="{{ item.title }}"></iframe>
+          </div>
+        }
+
+        @if (item.files?.length) {
+          <section class="files-section">
+            <h3 class="section-title">{{ 'library.filesSection' | transloco }}</h3>
+            @for (file of item.files ?? []; track file.id) {
+              <a
+                class="file-link"
+                [href]="assetUrl(file.filePath)"
+                target="_blank"
+                rel="noopener noreferrer"
+                [download]="file.fileName"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path
+                    fill-rule="evenodd"
+                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span class="file-name">{{ file.fileName }}</span>
+                <span class="muted small">{{ formatFileSize(file.fileSize) }}</span>
+              </a>
+            }
+          </section>
+        } @else if (item.type === 'file' && item.mediaUrl) {
+          <a
+            class="file-link"
+            [href]="assetUrl(item.mediaUrl)"
+            target="_blank"
+            rel="noopener noreferrer"
+            [download]="item.fileName || 'file'"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                fill-rule="evenodd"
+                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="file-name">{{ item.fileName || ('library.downloadFile' | transloco) }}</span>
+          </a>
+        }
+
+        @if (item.body) {
+          <div class="body-text">{{ item.body }}</div>
+        } @else {
+          <p class="muted no-content">{{ 'library.noContent' | transloco }}</p>
+        }
+      </div>
+    } @else {
+      <div class="empty-detail">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
+        </svg>
+        <p>{{ 'library.selectItem' | transloco }}</p>
+        @if (auth.isAdmin()) {
+          <button mat-flat-button type="button" (click)="openCreate()">
+            {{ 'library.create' | transloco }}
+          </button>
+        }
+      </div>
+    }
+  </main>
+</div>

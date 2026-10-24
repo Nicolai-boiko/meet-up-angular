@@ -1,0 +1,168 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/client"
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  name              String
+  passwordHash      String
+  role              String    @default("USER")
+  firstName         String?
+  lastName          String?
+  birthDate         DateTime?
+  avatar            String?   @db.Text
+  createdAt         DateTime  @default(now())
+
+  rooms             Room[]    @relation("RoomHost")
+  content           Content[]
+
+  hostedMeetings    Meeting[]              @relation("MeetingHost")
+  meetingParticipations MeetingParticipant[]
+  passwordResetTokens  PasswordResetToken[]
+  refreshTokens        RefreshToken[]
+  favorites            Favorite[]
+}
+
+model Room {
+  id           Int       @id @default(autoincrement())
+  title        String
+  slug         String    @unique
+  isActive     Boolean   @default(false)
+  isPrivate    Boolean   @default(false)
+  passwordHash String?
+  hostId       Int
+  createdAt    DateTime  @default(now())
+
+  host         User      @relation("RoomHost", fields: [hostId], references: [id])
+
+  meetings     Meeting[]
+}
+
+model Meeting {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  createdAt   DateTime @default(now())
+
+  hostId      Int
+  host        User     @relation("MeetingHost", fields: [hostId], references: [id])
+
+  roomId      Int?
+  room        Room?    @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  // Recurring meetings
+  recurrenceType    String?   // "DAILY" | "WEEKLY" | "BIWEEKLY" | "MONTHLY"
+  recurrenceEndDate DateTime?
+  parentMeetingId   Int?
+
+  parentMeeting     Meeting?  @relation("MeetingRecurrence", fields: [parentMeetingId], references: [id], onDelete: Cascade)
+  childMeetings     Meeting[] @relation("MeetingRecurrence")
+
+  meetingParticipants MeetingParticipant[]
+}
+
+model MeetingParticipant {
+  id        Int      @id @default(autoincrement())
+  meetingId Int
+  userId    Int
+  status    String   @default("INVITED")
+  createdAt DateTime @default(now())
+
+  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, userId])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id      Int          @id @default(autoincrement())
+  name    String       @unique
+  content ContentTag[]
+}
+
+model ContentTag {
+  contentId Int
+  tagId     Int
+  id        Int         @id @default(autoincrement())
+  content   Content     @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag       Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+}
+
+model Content {
+  id          Int          @id @default(autoincrement())
+  title       String
+  type        String
+  body        String?
+  mediaUrl    String?
+  fileName    String?
+  authorId    Int
+  createdAt   DateTime     @default(now())
+
+  author      User         @relation(fields: [authorId], references: [id])
+  contentTags ContentTag[]
+  favorites   Favorite[]
+  files       ContentFile[]
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  contentId Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+}
+
+model ContentFile {
+  id        Int      @id @default(autoincrement())
+  contentId Int
+  fileName  String
+  filePath  String
+  fileSize  Int?
+  createdAt DateTime @default(now())
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  roomSlug  String
+  text      String
+  userName  String
+  initials  String
+  avatar    String?
+  socketId  String
+  userId    Int?
+  createdAt DateTime @default(now())
+
+  @@index([roomSlug, createdAt])
+}

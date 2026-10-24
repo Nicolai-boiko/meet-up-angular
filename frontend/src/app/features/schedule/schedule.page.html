@@ -1,0 +1,161 @@
+<div class="schedule">
+  <aside class="sidebar">
+    <section class="sidebar-block">
+      <h2 class="block-title">{{ 'schedule.search' | transloco }}</h2>
+      <input
+        class="search-input"
+        type="text"
+        [placeholder]="'schedule.searchPlaceholder' | transloco"
+        [value]="search()"
+        (input)="onSearchInput($event)"
+      />
+    </section>
+
+    <section class="sidebar-block">
+      <h2 class="block-title">{{ 'schedule.participants' | transloco }}</h2>
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>{{ 'schedule.allUsers' | transloco }}</mat-label>
+        <mat-select
+          multiple
+          [value]="selectedUserIds()"
+          (selectionChange)="onFilterUsersChange($event)"
+        >
+          @for (user of users(); track user.id) {
+            <mat-option [value]="user.id">{{ user.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      @if (selectedUserIds().length) {
+        <button mat-button type="button" class="reset-button" (click)="clearUsers()">
+          {{ 'schedule.resetFilter' | transloco }}
+        </button>
+      }
+    </section>
+
+    <section class="sidebar-block">
+      <h2 class="block-title">{{ 'schedule.legend' | transloco }}</h2>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot host"></span>{{ 'schedule.legendHost' | transloco }}</span>
+        <span class="legend-item"><span class="legend-dot participant"></span>{{ 'schedule.legendParticipating' | transloco }}</span>
+        <span class="legend-item"><span class="legend-dot invited"></span>{{ 'schedule.legendPending' | transloco }}</span>
+        <span class="legend-item"><span class="legend-dot other"></span>{{ 'schedule.legendOther' | transloco }}</span>
+      </div>
+    </section>
+
+    <section class="sidebar-block day-section">
+      @if (selectedDay(); as day) {
+        <div class="day-header">
+          <h2 class="block-title">{{ formatDayHeader(day) }}</h2>
+          <button mat-icon-button type="button" class="close-day" (click)="selectedDay.set(null)">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+
+        @if (selectedDayMeetings().length) {
+          <div class="day-meetings">
+            @for (meeting of selectedDayMeetings(); track meeting.id) {
+              <button
+                type="button"
+                class="meeting-row"
+                [class]="'meeting-row status-' + statusOf(meeting)"
+                (click)="openDetail(meeting)"
+              >
+                <span class="meeting-title">
+                  @if (isPartOfSeries(meeting)) {
+                    <span [title]="'schedule.recurring' | transloco">🔄 </span>
+                  }
+                  {{ meeting.title }}
+                </span>
+                <span class="meeting-time">
+                  {{ formatTime(meeting.startTime) }} – {{ formatTime(meeting.endTime) }}
+                </span>
+                <span class="meeting-host-row">
+                  <span class="meeting-host">{{ meeting.host?.name || '—' }}</span>
+                  @if (meeting.room) {
+                    <span class="room-flag">🎥</span>
+                  }
+                  @if (isInvitedForDay(meeting)) {
+                    <span class="new-badge">{{ 'schedule.new' | transloco }}</span>
+                  }
+                </span>
+              </button>
+            }
+          </div>
+        } @else {
+          <p class="muted day-empty">{{ 'schedule.noMeetings' | transloco }}</p>
+        }
+      } @else {
+        <p class="muted day-empty">{{ 'schedule.selectDay' | transloco }}</p>
+      }
+    </section>
+  </aside>
+
+  <main class="calendar-pane">
+    <div class="calendar-toolbar">
+      <div class="toolbar-left">
+        <button mat-icon-button type="button" (click)="prevMonth()" [attr.aria-label]="'schedule.title' | transloco">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+        <h1 class="month-label">{{ monthLabel() }}</h1>
+        <button mat-icon-button type="button" (click)="nextMonth()" [attr.aria-label]="'schedule.title' | transloco">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+        <button mat-stroked-button type="button" class="today-button" (click)="goToday()">
+          {{ 'schedule.today' | transloco }}
+        </button>
+      </div>
+
+      <button mat-flat-button type="button" (click)="openCreate()">
+        {{ 'schedule.newMeeting' | transloco }}
+      </button>
+    </div>
+
+    <div class="weekdays">
+      @for (dayName of dayNames(); track dayName) {
+        <span class="weekday">{{ dayName }}</span>
+      }
+    </div>
+
+    <div class="calendar-grid">
+      @for (day of calendarDays(); track day.date.getTime()) {
+        <div
+          class="day-cell"
+          [class.other-month]="!day.isCurrentMonth"
+          [class.today]="isToday(day.date)"
+          [class.selected]="isSelectedDay(day.date)"
+          (click)="selectDay(day)"
+        >
+          <span class="day-number">{{ day.dayNumber }}</span>
+          @if (day.meetings.length) {
+            <div class="dots">
+              @for (meeting of day.meetings.slice(0, 3); track meeting.id) {
+                <span [class]="'dot ' + statusOf(meeting)" [title]="meeting.title"></span>
+              }
+              @if (day.meetings.length > 3) {
+                <span class="more">+{{ day.meetings.length - 3 }}</span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </main>
+</div>

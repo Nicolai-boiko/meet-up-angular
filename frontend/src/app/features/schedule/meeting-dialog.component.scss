@@ -1,0 +1,255 @@
+.dialog-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.close-button {
+  flex: 0 0 auto;
+}
+
+.close-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px !important;
+}
+
+.meeting-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.meeting-description {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.info-card,
+.recurrence-card {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--mat-sys-surface-container);
+}
+
+.info-label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mat-sys-on-surface-variant);
+  margin-bottom: 4px;
+}
+
+.info-value {
+  font-weight: 600;
+}
+
+.room-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.room-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.recurrence-card {
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent);
+}
+
+.series-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.participants-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.participant-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  width: fit-content;
+  background: var(--mat-sys-surface-container-high);
+}
+
+.participant-chip.host {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.participant-chip.accepted {
+  background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+}
+
+.participant-chip.invited {
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 22%, transparent);
+}
+
+.participant-chip.declined {
+  opacity: 0.6;
+  background: color-mix(in srgb, var(--mat-sys-error) 15%, transparent);
+}
+
+.participant-chip img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chip-initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.chip-hint {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.group-label {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.declined-name {
+  text-decoration: line-through;
+}
+
+.actions-row,
+.export-row,
+.form-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.danger-button {
+  color: var(--mat-sys-error);
+  border-color: color-mix(in srgb, var(--mat-sys-error) 40%, transparent);
+}
+
+.accept-button {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+}
+
+.export-button {
+  flex: 1 1 160px;
+}
+
+.meeting-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.two-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.recurrence-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recurrence-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding-left: 12px;
+  border-left: 2px solid var(--mat-sys-primary-container);
+}
+
+.scope-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent);
+}
+
+.radio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.radio-row input {
+  accent-color: var(--mat-sys-primary);
+}
+
+.warning-text {
+  color: var(--mat-sys-tertiary);
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+@media (min-width: 600px) {
+  .two-columns,
+  .recurrence-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+}

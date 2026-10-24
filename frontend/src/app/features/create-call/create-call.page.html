@@ -1,0 +1,79 @@
+<div class="page">
+  <mat-card class="section-card">
+    <h2 class="section-title">{{ 'createCall.title' | transloco }}</h2>
+
+    <div class="call-forms">
+      <form class="call-form" [formGroup]="createForm" (ngSubmit)="createAndJoin()">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'createCall.roomName' | transloco }}</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="slug"
+            [placeholder]="'createCall.roomNamePlaceholder' | transloco"
+          />
+          @if (createForm.controls.slug.invalid) {
+            <mat-error>{{ 'auth.errors.required' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'createCall.passwordOptional' | transloco }}</mat-label>
+          <input matInput type="text" formControlName="password" />
+        </mat-form-field>
+
+        <button mat-flat-button type="submit" [disabled]="creating()">
+          {{ (creating() ? 'createCall.creating' : 'createCall.create') | transloco }}
+        </button>
+
+        @if (roomError()) {
+          <p class="error-text">{{ roomError() }}</p>
+        }
+      </form>
+
+      <form class="call-form" [formGroup]="joinForm" (ngSubmit)="joinRoom()">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'createCall.joinRoom' | transloco }}</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="slug"
+            [placeholder]="'createCall.joinPlaceholder' | transloco"
+          />
+          @if (joinForm.controls.slug.invalid) {
+            <mat-error>{{ 'auth.errors.required' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-flat-button class="join-button" type="submit" [disabled]="joining()">
+          {{ (joining() ? 'createCall.joining' : 'createCall.join') | transloco }}
+        </button>
+
+        @if (joinError()) {
+          <p class="error-text">{{ joinError() }}</p>
+        }
+      </form>
+    </div>
+  </mat-card>
+
+  @if (meetups.upcomingMeetups().length) {
+    <mat-card class="section-card">
+      <h2 class="section-title">{{ 'createCall.upcomingTitle' | transloco }}</h2>
+      <div class="meetup-list">
+        @for (meetup of meetups.upcomingMeetups(); track meetup.id) {
+          <div class="meetup-row">
+            <h3>{{ meetup.title }}</h3>
+            <p class="muted">{{ meetup.startTime }}</p>
+            @if (meetup.description) {
+              <p>{{ meetup.description }}</p>
+            }
+          </div>
+        }
+      </div>
+    </mat-card>
+  }
+
+  @if (meetups.loading()) {
+    <p class="muted centered">{{ 'common.loading' | transloco }}</p>
+  }
+</div>

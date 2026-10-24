@@ -1,0 +1,130 @@
+:host {
+  display: block;
+  position: relative;
+  z-index: 20;
+}
+
+.app-header {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px;
+  min-height: 60px;
+}
+
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-left {
+  flex: 1 1 auto;
+}
+
+.brand {
+  color: inherit;
+  text-decoration: none;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 0 8px;
+}
+
+.desktop-nav {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+}
+
+:host ::ng-deep .app-header .mat-mdc-button {
+  color: color-mix(in srgb, var(--mat-sys-on-primary) 80%, transparent);
+}
+
+:host ::ng-deep .app-header .mat-mdc-button.active-link {
+  background: color-mix(in srgb, var(--mat-sys-on-primary) 16%, transparent);
+  color: var(--mat-sys-on-primary);
+}
+
+.admin-link {
+  color: inherit !important;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.mobile-toggle {
+  color: inherit;
+}
+
+.mobile-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.mobile-nav {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0 8px;
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-on-primary) 20%, transparent);
+}
+
+.lang-select {
+  width: 64px;
+  --mat-select-trigger-text-size: 12px;
+}
+
+.profile-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.profile-link:hover {
+  background: color-mix(in srgb, var(--mat-sys-on-primary) 12%, transparent);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid color-mix(in srgb, var(--mat-sys-on-primary) 30%, transparent);
+}
+
+.avatar-initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mat-sys-tertiary);
+  color: var(--mat-sys-on-tertiary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.display-name {
+  display: none;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .desktop-nav {
+    display: flex;
+  }
+
+  .mobile-toggle,
+  .mobile-nav {
+    display: none;
+  }
+
+  .display-name {
+    display: inline;
+  }
+}

@@ -1,0 +1,284 @@
+<div class="admin-page">
+  <header class="admin-header">
+    <h1>{{ 'admin.title' | transloco }}</h1>
+  </header>
+
+  <nav class="tabs">
+    @for (tab of tabs; track tab.key) {
+      <button
+        type="button"
+        class="tab"
+        [class.active]="activeTab() === tab.key"
+        (click)="switchTab(tab.key)"
+      >
+        {{ tab.labelKey | transloco }}
+      </button>
+    }
+  </nav>
+
+  <section class="tab-content">
+    @if (activeTab() === 'dashboard') {
+      @if (dashLoading()) {
+        <p class="muted centered">{{ 'admin.loading' | transloco }}</p>
+      } @else if (stats(); as s) {
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-label">{{ 'admin.totalUsers' | transloco }}</span>
+            <span class="stat-value">{{ s.totals.users }}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">{{ 'admin.totalContent' | transloco }}</span>
+            <span class="stat-value">{{ s.totals.content }}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">{{ 'admin.totalMeetings' | transloco }}</span>
+            <span class="stat-value">{{ s.totals.meetings }}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">{{ 'admin.totalFiles' | transloco }}</span>
+            <span class="stat-value">{{ s.totals.files }}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">{{ 'admin.totalStorage' | transloco }}</span>
+            <span class="stat-value">{{ formatStorage(s.totals.totalStorage) }}</span>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card">
+            <h3>{{ 'admin.newUsersChart' | transloco }}</h3>
+            @if (usersChartData(); as chartData) {
+              <app-chart type="line" [data]="chartData" [options]="lineOptions" />
+            } @else {
+              <p class="muted centered">{{ 'admin.noData' | transloco }}</p>
+            }
+          </div>
+
+          <div class="chart-card">
+            <h3>{{ 'admin.topAuthors' | transloco }}</h3>
+            @if (authorsChartData(); as chartData) {
+              <app-chart type="bar" [data]="chartData" [options]="barOptions" />
+            } @else {
+              <p class="muted centered">{{ 'admin.noData' | transloco }}</p>
+            }
+          </div>
+
+          <div class="chart-card">
+            <h3>{{ 'admin.contentByType' | transloco }}</h3>
+            @if (typeChartData(); as chartData) {
+              <app-chart type="doughnut" [data]="chartData" [options]="doughnutOptions" />
+            } @else {
+              <p class="muted centered">{{ 'admin.noData' | transloco }}</p>
+            }
+          </div>
+
+          <div class="chart-card">
+            <h3>{{ 'admin.contentByTag' | transloco }}</h3>
+            @if (tagsChartData(); as chartData) {
+              <app-chart type="doughnut" [data]="chartData" [options]="doughnutOptions" />
+            } @else {
+              <p class="muted centered">{{ 'admin.noData' | transloco }}</p>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    @if (activeTab() === 'users') {
+      <input
+        class="search-input"
+        type="text"
+        [placeholder]="'admin.searchUsers' | transloco"
+        [value]="searchUsers()"
+        (input)="onSearchUsers($event)"
+      />
+
+      <div class="table-card">
+        @if (usersLoading()) {
+          <p class="muted centered">{{ 'admin.loading' | transloco }}</p>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="sortable" (click)="toggleUserSort('name')">
+                  {{ 'admin.userCol' | transloco }}
+                  @if (userSortBy() === 'name') {
+                    <span>{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th class="sortable" (click)="toggleUserSort('email')">
+                  {{ 'admin.emailCol' | transloco }}
+                  @if (userSortBy() === 'email') {
+                    <span>{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th class="sortable" (click)="toggleUserSort('role')">
+                  {{ 'admin.roleCol' | transloco }}
+                  @if (userSortBy() === 'role') {
+                    <span>{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th class="right">{{ 'admin.actions' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of userItems(); track user.id) {
+                <tr>
+                  <td>
+                    <div class="user-cell">
+                      @if (user.avatar) {
+                        <img class="table-avatar" [src]="assetUrl(user.avatar)" alt="" />
+                      } @else {
+                        <span class="initials-avatar">{{ userInitials(user) }}</span>
+                      }
+                      <span class="strong">{{ userDisplayName(user) }}</span>
+                    </div>
+                  </td>
+                  <td class="muted">{{ user.email }}</td>
+                  <td>
+                    <span class="role-badge" [class.admin]="user.role === 'ADMIN'">
+                      {{ user.role }}
+                    </span>
+                  </td>
+                  <td class="right">
+                    @if (user.role !== 'ADMIN') {
+                      <button mat-button type="button" class="link-button" (click)="promoteUser(user)">
+                        {{ 'admin.makeAdmin' | transloco }}
+                      </button>
+                    } @else {
+                      <button mat-button type="button" class="link-button warn" (click)="demoteUser(user)">
+                        {{ 'admin.removeAdmin' | transloco }}
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (usersHasMore()) {
+            <button mat-button type="button" class="load-more" (click)="loadMoreUsers()">
+              {{ 'admin.loadMore' | transloco: { count: usersTotal() - userItems().length } }}
+            </button>
+          }
+        }
+      </div>
+    }
+
+    @if (activeTab() === 'content') {
+      <div class="table-card">
+        @if (contentLoading()) {
+          <p class="muted centered">{{ 'admin.loading' | transloco }}</p>
+        } @else {
+          <div class="bulk-bar" [class.active]="selectedContentIds().length">
+            @if (selectedContentIds().length) {
+              <span>{{ 'admin.selectedCount' | transloco: { count: selectedContentIds().length } }}</span>
+              <button mat-flat-button type="button" class="danger-action" (click)="deleteSelectedContent()">
+                {{ 'admin.deleteSelected' | transloco }}
+              </button>
+              <button mat-button type="button" (click)="selectedContentIds.set([])">
+                {{ 'common.cancel' | transloco }}
+              </button>
+            } @else {
+              <span class="muted">{{ 'admin.selectToDelete' | transloco }}</span>
+            }
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="checkbox-col">
+                  <input
+                    type="checkbox"
+                    [checked]="selectedContentIds().length === contentItems().length && contentItems().length > 0"
+                    (change)="toggleAllContent()"
+                  />
+                </th>
+                <th>{{ 'admin.nameCol' | transloco }}</th>
+                <th>{{ 'admin.typeCol' | transloco }}</th>
+                <th>{{ 'admin.authorCol' | transloco }}</th>
+                <th>{{ 'admin.dateCol' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of contentItems(); track item.id) {
+                <tr>
+                  <td class="checkbox-col">
+                    <input
+                      type="checkbox"
+                      [checked]="selectedContentIds().includes(item.id)"
+                      (change)="toggleContentSelect(item.id)"
+                    />
+                  </td>
+                  <td class="strong truncate">{{ item.title }}</td>
+                  <td class="muted">{{ item.type }}</td>
+                  <td class="muted">{{ item.author?.name }}</td>
+                  <td class="muted">{{ formatDate(item.createdAt) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
+
+    @if (activeTab() === 'rooms') {
+      <div class="table-card">
+        @if (roomsLoading()) {
+          <p class="muted centered">{{ 'admin.loading' | transloco }}</p>
+        } @else {
+          <div class="bulk-bar" [class.active]="selectedRoomIds().length">
+            @if (selectedRoomIds().length) {
+              <span>{{ 'admin.selectedCount' | transloco: { count: selectedRoomIds().length } }}</span>
+              <button mat-flat-button type="button" class="danger-action" (click)="deleteSelectedRooms()">
+                {{ 'admin.deleteSelected' | transloco }}
+              </button>
+              <button mat-button type="button" (click)="selectedRoomIds.set([])">
+                {{ 'common.cancel' | transloco }}
+              </button>
+            } @else {
+              <span class="muted">{{ 'admin.selectToDeleteRooms' | transloco }}</span>
+            }
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="checkbox-col">
+                  <input
+                    type="checkbox"
+                    [checked]="selectedRoomIds().length === roomItems().length && roomItems().length > 0"
+                    (change)="toggleAllRooms()"
+                  />
+                </th>
+                <th>{{ 'admin.roomCol' | transloco }}</th>
+                <th>{{ 'admin.nameCol' | transloco }}</th>
+                <th>{{ 'admin.statusCol' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (room of roomItems(); track room.id) {
+                <tr>
+                  <td class="checkbox-col">
+                    <input
+                      type="checkbox"
+                      [checked]="selectedRoomIds().includes(room.id)"
+                      (change)="toggleRoomSelect(room.id)"
+                    />
+                  </td>
+                  <td class="strong">{{ room.title }}</td>
+                  <td class="muted mono">{{ room.slug }}</td>
+                  <td>
+                    <span class="status-badge" [class.active]="room.isActive">
+                      {{ (room.isActive ? 'admin.active' : 'admin.inactive') | transloco }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
+  </section>
+</div>

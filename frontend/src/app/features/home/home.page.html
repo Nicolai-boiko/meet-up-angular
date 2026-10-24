@@ -1,0 +1,87 @@
+<div class="home">
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>
+        {{ 'home.heroTitle' | transloco }}
+        <span class="accent">{{ 'home.heroHighlight' | transloco }}</span>
+      </h1>
+      <p class="hero-subtitle">{{ 'home.heroSubtitle' | transloco }}</p>
+      <div class="hero-actions">
+        @if (auth.isAuthenticated()) {
+          <a mat-flat-button routerLink="/create-call">{{ 'home.createCall' | transloco }}</a>
+        } @else {
+          <a mat-flat-button routerLink="/auth">{{ 'home.startNow' | transloco }}</a>
+        }
+        <a mat-stroked-button routerLink="/library">{{ 'home.libraryBtn' | transloco }}</a>
+      </div>
+    </div>
+
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 400 300" fill="none">
+        <circle cx="120" cy="140" r="90" class="art-soft" />
+        <circle cx="280" cy="100" r="60" class="art-soft" opacity="0.5" />
+        <circle cx="310" cy="230" r="40" class="art-soft" />
+        <rect x="70" y="110" width="160" height="105" rx="6" class="art-frame" />
+        <rect x="80" y="120" width="140" height="82" rx="4" class="art-screen" />
+        <rect x="110" y="145" width="80" height="2" rx="1" class="art-line" />
+        <rect x="110" y="155" width="50" height="2" rx="1" class="art-line" />
+        <rect x="110" y="165" width="60" height="2" rx="1" class="art-line" />
+        <rect x="60" y="215" width="180" height="8" rx="2" class="art-frame" />
+        <circle cx="190" cy="70" r="18" class="art-person" />
+        <path d="M160 120c0-16 13-30 30-30s30 14 30 30" class="art-person" />
+        <rect x="240" y="60" width="90" height="65" rx="8" class="art-tile" />
+        <circle cx="275" cy="85" r="10" class="art-tile-person" />
+        <path d="M260 115c0-8 7-15 15-15s15 7 15 15" class="art-tile-person" />
+        <rect x="280" y="170" width="80" height="55" rx="7" class="art-tile" />
+        <circle cx="310" cy="190" r="9" class="art-tile-person" />
+        <path d="M296 218c0-7 6-13 14-13s14 6 14 13" class="art-tile-person" />
+      </svg>
+    </div>
+  </section>
+
+  <section class="features">
+    @for (feature of features; track feature.link) {
+      <mat-card class="feature-card" [routerLink]="feature.link">
+        <span class="feature-icon">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path [attr.d]="feature.icon" />
+          </svg>
+        </span>
+        <h3>{{ feature.titleKey | transloco }}</h3>
+        <p class="muted">{{ feature.descKey | transloco }}</p>
+      </mat-card>
+    }
+  </section>
+
+  @if (auth.isAuthenticated() && meetups.upcomingMeetups().length) {
+    <section class="upcoming">
+      <div class="upcoming-header">
+        <h2 class="section-title">{{ 'home.upcomingMeetings' | transloco }}</h2>
+        <a mat-button routerLink="/schedule">{{ 'home.allMeetings' | transloco }}</a>
+      </div>
+
+      <div class="cards-grid">
+        @for (meetup of meetups.upcomingMeetups().slice(0, 6); track meetup.id) {
+          <mat-card class="meeting-card" (click)="goToSchedule()">
+            <div class="meeting-title-row">
+              <h3>{{ meetup.title }}</h3>
+              @if (meetup.room) {
+                <span class="room-badge">●</span>
+              }
+            </div>
+            <p class="muted meeting-date">{{ formatMeetupDate(meetup.startTime) }}</p>
+            @if (meetup.description) {
+              <p class="meeting-description muted">{{ meetup.description }}</p>
+            }
+            <p class="meeting-meta muted">
+              {{ meetup.host?.name || ('home.unknownHost' | transloco) }}
+              @if (meetup.participants?.length) {
+                · {{ meetup.participants?.length }} {{ 'home.participants' | transloco }}
+              }
+            </p>
+          </mat-card>
+        }
+      </div>
+    </section>
+  }
+</div>

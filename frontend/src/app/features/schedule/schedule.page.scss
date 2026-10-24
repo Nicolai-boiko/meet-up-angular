@@ -1,0 +1,336 @@
+.schedule {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 70dvh;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--mat-sys-surface);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--mat-sys-surface-container-low);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.sidebar-block {
+  padding: 16px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.block-title {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 8px;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.filter-field {
+  width: 100%;
+}
+
+.reset-button {
+  margin-top: 4px;
+  color: var(--mat-sys-primary);
+  font-size: 0.75rem;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot,
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.legend-dot.host,
+.dot.host {
+  background: var(--mat-sys-primary);
+}
+
+.legend-dot.participant,
+.dot.participant {
+  background: var(--mat-sys-tertiary);
+}
+
+.legend-dot.invited,
+.dot.invited {
+  background: var(--mat-sys-outline);
+}
+
+.legend-dot.other,
+.dot.other {
+  background: var(--mat-sys-secondary);
+}
+
+.day-section {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  border-bottom: 0;
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.close-day svg {
+  width: 16px;
+  height: 16px;
+}
+
+.day-meetings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meeting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-left: 4px solid var(--mat-sys-outline);
+  border-radius: 8px;
+  background: var(--mat-sys-surface);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.meeting-row:hover {
+  background: var(--mat-sys-surface-container-high);
+}
+
+.meeting-row.status-host {
+  border-left-color: var(--mat-sys-primary);
+}
+
+.meeting-row.status-participant {
+  border-left-color: var(--mat-sys-tertiary);
+}
+
+.meeting-row.status-invited {
+  border-left-color: var(--mat-sys-outline);
+  opacity: 0.8;
+}
+
+.meeting-row.status-other {
+  border-left-color: var(--mat-sys-secondary);
+}
+
+.meeting-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meeting-time,
+.meeting-host-row {
+  font-size: 0.72rem;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.new-badge {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 25%, transparent);
+  color: var(--mat-sys-tertiary);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.day-empty {
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.calendar-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.month-label {
+  margin: 0 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  min-width: 160px;
+  text-align: center;
+}
+
+.today-button {
+  margin-left: 8px;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  flex: 0 0 auto;
+}
+
+.weekday {
+  padding: 8px 0;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.calendar-grid {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, minmax(64px, 1fr));
+  min-height: 0;
+}
+
+.day-cell {
+  position: relative;
+  padding: 6px;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  cursor: pointer;
+  min-height: 0;
+}
+
+.day-cell:hover {
+  background: var(--mat-sys-surface-container-high);
+}
+
+.day-cell.other-month {
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-outline);
+}
+
+.day-cell.today {
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+}
+
+.day-cell.selected {
+  box-shadow: inset 0 0 0 2px var(--mat-sys-primary);
+}
+
+.day-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+}
+
+.day-cell.today .day-number {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-weight: 700;
+}
+
+.dots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.dot {
+  height: 6px;
+  width: 100%;
+  max-width: 40px;
+  border-radius: 999px;
+}
+
+.more {
+  font-size: 0.6rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+@media (min-width: 900px) {
+  .schedule {
+    grid-template-columns: 320px 1fr;
+    height: min(80dvh, 900px);
+    min-height: 0;
+  }
+
+  .sidebar {
+    border-bottom: 0;
+    border-right: 1px solid var(--mat-sys-outline-variant);
+  }
+}
+
+@media (max-width: 599px) {
+  .month-label {
+    min-width: 0;
+    font-size: 0.95rem;
+  }
+
+  .calendar-grid {
+    grid-template-rows: repeat(6, minmax(48px, 1fr));
+  }
+
+  .dot {
+    max-width: 100%;
+  }
+}

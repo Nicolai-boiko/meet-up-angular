@@ -1,0 +1,75 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+dist-ssr
+
+# Angular
+.angular/
+out-tsc/
+
+# Tests / coverage
+coverage
+__screenshots__/
+
+# Environment variables (.env.example is tracked)
+.env
+.env.*
+*.local
+!.env.example
+
+# Secrets
+*.pem
+*.key
+*.p12
+*.pfx
+.npmrc
+
+# Local uploads and user files
+meetup-backend/uploads
+meetup-backend/uploads/
+
+# Docker local overrides
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Tooling caches
+*.tsbuildinfo
+.eslintcache
+.cache/
+
+# Package artifacts
+*.tgz
+
+# Backend build output
+meetup-backend/dist/
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+
+# Vite
+*.timestamp-*-*.mjs

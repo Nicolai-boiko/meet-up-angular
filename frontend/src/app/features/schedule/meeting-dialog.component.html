@@ -1,0 +1,320 @@
+<h2 mat-dialog-title class="dialog-title">
+  <span>
+    {{
+      (mode() === 'edit'
+        ? 'schedule.edit'
+        : mode() === 'create'
+          ? 'schedule.create'
+          : 'schedule.view') | transloco
+    }}
+  </span>
+  <button mat-icon-button type="button" class="close-button" (click)="dialogRef.close(false)">
+    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path
+        fill-rule="evenodd"
+        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+        clip-rule="evenodd"
+      />
+    </svg>
+  </button>
+</h2>
+
+<mat-dialog-content class="dialog-content">
+  @if (mode() === 'view' && viewMeeting(); as meeting) {
+    <h3 class="meeting-title">{{ meeting.title }}</h3>
+    @if (meeting.description) {
+      <p class="meeting-description">{{ meeting.description }}</p>
+    }
+
+    <div class="info-grid">
+      <div class="info-card">
+        <span class="info-label">{{ 'schedule.start' | transloco }}</span>
+        <span class="info-value">{{ formatDateTime(meeting.startTime) }}</span>
+      </div>
+      <div class="info-card">
+        <span class="info-label">{{ 'schedule.end' | transloco }}</span>
+        <span class="info-value">{{ formatDateTime(meeting.endTime) }}</span>
+      </div>
+    </div>
+
+    @if (meeting.room; as room) {
+      <div class="room-card">
+        <div>
+          <span class="info-label">{{ 'schedule.room' | transloco }}</span>
+          <p class="room-title">{{ room.title }}</p>
+        </div>
+        <a
+          mat-flat-button
+          [routerLink]="['/room', room.slug]"
+          [queryParams]="room.isPrivate ? { meetingId: meeting.id } : {}"
+        >
+          {{ 'schedule.enter' | transloco }}
+        </a>
+      </div>
+    }
+
+    @if (isRecurringParent(meeting)) {
+      <div class="recurrence-card">
+        <span class="info-label">{{ 'schedule.recurrence' | transloco }}</span>
+        <p class="info-value">{{ formatRecurrence(meeting) }}</p>
+      </div>
+    } @else if (isRecurringChild(meeting)) {
+      <p class="series-note">🔄 {{ 'schedule.partOfSeries' | transloco }}</p>
+    }
+
+    <section class="participants-section">
+      <h4 class="section-label">{{ 'schedule.participantsSection' | transloco }}</h4>
+
+      @if (meeting.host; as host) {
+        <div class="participant-chip host">
+          @if (host.avatar) {
+            <img [src]="assetUrl(host.avatar)" alt="" />
+          } @else {
+            <span class="chip-initials">{{ userInitials(host) }}</span>
+          }
+          <span>{{ userDisplayName(host) }}</span>
+          <span class="chip-hint">· {{ 'schedule.legendHost' | transloco }}</span>
+        </div>
+      }
+
+      @if (acceptedParticipants().length) {
+        <p class="group-label">{{ 'schedule.accepted' | transloco }}</p>
+        <div class="chips-row">
+          @for (participant of acceptedParticipants(); track participant.id) {
+            <div class="participant-chip accepted">
+              @if (participant.avatar) {
+                <img [src]="assetUrl(participant.avatar)" alt="" />
+              } @else {
+                <span class="chip-initials">{{ userInitials(participant) }}</span>
+              }
+              <span>{{ userDisplayName(participant) }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (invitedParticipants().length) {
+        <p class="group-label">{{ 'schedule.invited' | transloco }}</p>
+        <div class="chips-row">
+          @for (participant of invitedParticipants(); track participant.id) {
+            <div class="participant-chip invited">
+              @if (participant.avatar) {
+                <img [src]="assetUrl(participant.avatar)" alt="" />
+              } @else {
+                <span class="chip-initials">{{ userInitials(participant) }}</span>
+              }
+              <span>{{ userDisplayName(participant) }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (declinedParticipants().length) {
+        <p class="group-label">{{ 'schedule.declined' | transloco }}</p>
+        <div class="chips-row">
+          @for (participant of declinedParticipants(); track participant.id) {
+            <div class="participant-chip declined">
+              @if (participant.avatar) {
+                <img [src]="assetUrl(participant.avatar)" alt="" />
+              } @else {
+                <span class="chip-initials">{{ userInitials(participant) }}</span>
+              }
+              <span class="declined-name">{{ userDisplayName(participant) }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (!meeting.participants?.length) {
+        <p class="muted">{{ 'schedule.participants' | transloco }}</p>
+      }
+    </section>
+
+    <div class="actions-row">
+      @if (authUserId() && isHost(meeting)) {
+        <button mat-stroked-button type="button" (click)="openEdit()">
+          {{ 'common.edit' | transloco }}
+        </button>
+        <button mat-stroked-button type="button" class="danger-button" (click)="handleDelete(meeting)">
+          {{ 'common.delete' | transloco }}
+        </button>
+      } @else if (authUserId() && isParticipant(meeting)) {
+        <button mat-stroked-button type="button" class="danger-button" (click)="handleDecline(meeting)">
+          {{ 'schedule.decline' | transloco }}
+        </button>
+      } @else if (authUserId() && isInvited(meeting)) {
+        <button mat-flat-button type="button" class="accept-button" (click)="handleJoin(meeting)">
+          {{ 'schedule.accept' | transloco }}
+        </button>
+        <button mat-stroked-button type="button" class="danger-button" (click)="handleDecline(meeting)">
+          {{ 'schedule.decline' | transloco }}
+        </button>
+      } @else if (authUserId()) {
+        <button mat-flat-button type="button" class="accept-button" (click)="handleJoin(meeting)">
+          {{ 'schedule.join' | transloco }}
+        </button>
+      }
+    </div>
+
+    <div class="export-row">
+      <button mat-stroked-button type="button" class="export-button" (click)="handleExportIcs(meeting)">
+        📥 {{ 'schedule.downloadIcs' | transloco }}
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        class="export-button"
+        (click)="handleGoogleCalendar(meeting)"
+      >
+        📅 {{ 'schedule.googleCalendar' | transloco }}
+      </button>
+    </div>
+  } @else {
+    <form class="meeting-form" [formGroup]="form" (ngSubmit)="handleSave()">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'schedule.formTitleLabel' | transloco }}</mat-label>
+        <input
+          matInput
+          type="text"
+          formControlName="title"
+          [placeholder]="'schedule.formTitlePlaceholder' | transloco"
+        />
+        @if (form.controls.title.invalid) {
+          <mat-error>{{ 'schedule.formTitleRequired' | transloco }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'schedule.description' | transloco }}</mat-label>
+        <textarea
+          matInput
+          rows="3"
+          formControlName="description"
+          [placeholder]="'schedule.formDescPlaceholder' | transloco"
+        ></textarea>
+      </mat-form-field>
+
+      <div class="two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'schedule.formStart' | transloco }}</mat-label>
+          <input matInput type="datetime-local" formControlName="startTime" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'schedule.formEnd' | transloco }}</mat-label>
+          <input matInput type="datetime-local" formControlName="endTime" />
+        </mat-form-field>
+      </div>
+
+      <div class="recurrence-block">
+        <mat-checkbox
+          [checked]="recurrenceEnabled()"
+          (change)="recurrenceEnabled.set($event.checked)"
+        >
+          {{ 'schedule.recurrence' | transloco }}
+        </mat-checkbox>
+
+        @if (recurrenceEnabled()) {
+          <div class="recurrence-fields">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'schedule.recurrenceType' | transloco }}</mat-label>
+              <mat-select [value]="recurrenceType()" (selectionChange)="onRecurrenceTypeChange($event)">
+                <mat-option value="DAILY">{{ 'schedule.daily' | transloco }}</mat-option>
+                <mat-option value="WEEKLY">{{ 'schedule.weekly' | transloco }}</mat-option>
+                <mat-option value="BIWEEKLY">{{ 'schedule.biweekly' | transloco }}</mat-option>
+                <mat-option value="MONTHLY">{{ 'schedule.monthly' | transloco }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'schedule.recurrenceEnd' | transloco }}</mat-label>
+              <input
+                matInput
+                type="date"
+                [value]="recurrenceEndDate()"
+                (input)="onRecurrenceEndInput($event)"
+              />
+            </mat-form-field>
+          </div>
+        }
+      </div>
+
+      @if (mode() === 'edit' && viewMeeting(); as editing) {
+        @if (isPartOfSeries(editing)) {
+          <div class="scope-block">
+            <span class="section-label">{{ 'schedule.editScope' | transloco }}</span>
+            <label class="radio-row">
+              <input
+                type="radio"
+                name="scope"
+                [checked]="editScope() === 'this'"
+                (change)="setScope('this')"
+              />
+              <span>{{ 'schedule.scopeThis' | transloco }}</span>
+            </label>
+            <label class="radio-row">
+              <input
+                type="radio"
+                name="scope"
+                [checked]="editScope() === 'all'"
+                (change)="setScope('all')"
+              />
+              <span>{{ 'schedule.scopeAll' | transloco }}</span>
+            </label>
+            <label class="radio-row">
+              <input
+                type="radio"
+                name="scope"
+                [checked]="editScope() === 'future'"
+                (change)="setScope('future')"
+              />
+              <span>{{ 'schedule.scopeFuture' | transloco }}</span>
+            </label>
+          </div>
+        }
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'schedule.room' | transloco }}</mat-label>
+        <mat-select [value]="roomId()" (selectionChange)="onRoomChange($event)">
+          <mat-option [value]="null">{{ 'schedule.roomSelect' | transloco }}</mat-option>
+          @for (room of data.rooms; track room.id) {
+            <mat-option [value]="room.id">{{ room.title }} ({{ room.slug }})</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'schedule.inviteParticipants' | transloco }}</mat-label>
+        <mat-select
+          multiple
+          [value]="participantIds()"
+          (selectionChange)="onParticipantsChange($event)"
+        >
+          @for (user of availableUsers(); track user.id) {
+            <mat-option [value]="user.id">{{ userDisplayName(user) }}</mat-option>
+          }
+        </mat-select>
+        @if (!availableUsers().length) {
+          <mat-hint>{{ 'schedule.noUsers' | transloco }}</mat-hint>
+        }
+      </mat-form-field>
+
+      @if (timeError()) {
+        <p class="warning-text">{{ timeError() }}</p>
+      }
+      @if (formError()) {
+        <p class="error-text">{{ formError() }}</p>
+      }
+
+      <div class="form-actions">
+        <button mat-flat-button type="submit" [disabled]="saving() || !!timeError()">
+          {{ (saving() ? 'schedule.saving' : 'schedule.save') | transloco }}
+        </button>
+        <button mat-stroked-button type="button" (click)="cancelEdit()">
+          {{ 'common.cancel' | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+</mat-dialog-content>

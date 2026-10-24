@@ -1,0 +1,50 @@
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+}
+
+.mode-switch {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.mode-switch button.active {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-title {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.submit {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.link {
+  align-self: center;
+}
+
+.success-text {
+  color: var(--mat-sys-primary);
+  margin: 0;
+}
